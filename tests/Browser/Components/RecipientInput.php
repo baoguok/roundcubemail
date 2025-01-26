@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Browser\Components;
+namespace Roundcube\Tests\Browser\Components;
 
-use Tests\Browser\Browser;
-use PHPUnit\Framework\Assert;
 use Laravel\Dusk\Component;
+use PHPUnit\Framework\Assert;
+use Roundcube\Tests\Browser\Browser;
 
 class RecipientInput extends Component
 {
@@ -23,6 +23,7 @@ class RecipientInput extends Component
      *
      * @return string
      */
+    #[\Override]
     public function selector()
     {
         return $this->selector;
@@ -32,10 +33,9 @@ class RecipientInput extends Component
      * Assert that the browser page contains the component.
      *
      * @param Browser $browser
-     *
-     * @return void
      */
-    public function assert($browser)
+    #[\Override]
+    public function assert($browser): void
     {
         $browser->waitFor($this->selector() . ' @input');
     }
@@ -45,6 +45,7 @@ class RecipientInput extends Component
      *
      * @return array
      */
+    #[\Override]
     public function elements()
     {
         return [
@@ -63,9 +64,9 @@ class RecipientInput extends Component
     public function assertRecipient($browser, $num, $recipient)
     {
         $browser->ensurejQueryIsAvailable();
-        $selector = $this->selector() . " ul.recipient-input li.recipient:nth-child($num)";
-        $text = $browser->driver->executeScript("return \$('$selector').text()");
+        $selector = $this->selector() . " ul.recipient-input li.recipient:nth-child({$num})";
+        $text = $browser->driver->executeScript("return \$('{$selector}').text()");
 
-        Assert::assertSame($recipient, is_string($text) ? trim($text, ", ") : null);
+        Assert::assertSame($recipient, is_string($text) ? trim($text, ', ') : null);
     }
 }

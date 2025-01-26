@@ -1,12 +1,17 @@
 <?php
 
-namespace Tests\Browser\Contacts;
+namespace Roundcube\Tests\Browser\Contacts;
 
-class ExportTest extends \Tests\Browser\TestCase
+use PHPUnit\Framework\Attributes\Depends;
+use Roundcube\Tests\Browser\Bootstrap;
+use Roundcube\Tests\Browser\TestCase;
+
+class ExportTest extends TestCase
 {
+    #[\Override]
     public static function setUpBeforeClass(): void
     {
-        \bootstrap::init_db();
+        Bootstrap::init_db();
     }
 
     /**
@@ -37,10 +42,12 @@ class ExportTest extends \Tests\Browser\TestCase
      *
      * @depends testExportAll
      */
+    #[Depends('testExportAll')]
     public function testExportSelected()
     {
         $this->browse(function ($browser) {
-            $browser->ctrlClick('#contacts-table tbody tr:first-child');
+            $browser->waitFor('#contacts-table tbody tr:first-child')
+                ->ctrlClick('#contacts-table tbody tr:first-child');
 
             $browser->clickToolbarMenuItem('export', 'export.select');
 
