@@ -28,15 +28,12 @@ INSTALLATION
 ------------
 
 All styles are written using LESS syntax. Thus it needs to be compiled
-using the `lessc` (>= 2.5.2) command line tool. This comes with the `nodejs-less`
-RPM package or using `npm install less` which depend on nodejs.
+using the `lessc` command line tool (that you can install with `npm install`).
 ```
-    $ lessc --clean-css="--s1 --advanced" styles/styles.less > styles/styles.min.css
-    $ lessc --clean-css="--s1 --advanced" styles/print.less > styles/print.min.css
-    $ lessc --clean-css="--s1 --advanced" styles/embed.less > styles/embed.min.css
+    $ npx lessc --clean-css="--s1 --advanced" styles/styles.less > styles/styles.min.css
+    $ npx lessc --clean-css="--s1 --advanced" styles/print.less > styles/print.min.css
+    $ npx lessc --clean-css="--s1 --advanced" styles/embed.less > styles/embed.min.css
 ```
-(`--clean-css="--s1 --advanced"` minifies the css, requires the clean-css Less plugin.
-The plugin can be installed using `npm install less-plugin-clean-css`)
 
 References to image files from the included CSS files can be appended
 with cache-buster marks to avoid browser caching issues after updating.
@@ -48,8 +45,7 @@ or after installing it on the destination system.
 FOR DEVELOPERS
 --------------
 
-- Supported browsers: IE11+, Edge, Last 2 versions for Chrome/Firefox/Safari,
-  Android Browser 5+, iOS Safari 9+.
+- Supported browsers: Last 2 versions of Edge/Chrome/Firefox/Safari.
 
 - Skin color palette changes and other css modifications can be done
   via _styles.less and _variables.less files. Where you can overwrite all

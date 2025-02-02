@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -21,9 +21,6 @@
 
 /**
  * Interface implementation class for accessing APC cache
- *
- * @package    Framework
- * @subpackage Cache
  */
 class rcube_cache_apc extends rcube_cache
 {
@@ -34,24 +31,21 @@ class rcube_cache_apc extends rcube_cache
      */
     protected $enabled;
 
-
-    /**
-     * {@inheritdoc}
-     */
     public function __construct($userid, $prefix = '', $ttl = 0, $packed = true, $indexed = false)
     {
         parent::__construct($userid, $prefix, $ttl, $packed, $indexed);
 
         $rcube = rcube::get_instance();
 
-        $this->type    = 'apc';
+        $this->type = 'apc';
         $this->enabled = function_exists('apc_exists'); // APC 3.1.4 required
-        $this->debug   = $rcube->config->get('apc_debug');
+        $this->debug = $rcube->config->get('apc_debug');
     }
 
     /**
      * Remove cache records older than ttl
      */
+    #[Override]
     public function expunge()
     {
         // No need for GC, entries are expunged automatically
@@ -60,6 +54,7 @@ class rcube_cache_apc extends rcube_cache
     /**
      * Remove expired records of all caches
      */
+    #[Override]
     public static function gc()
     {
         // No need for GC, entries are expunged automatically
@@ -72,6 +67,7 @@ class rcube_cache_apc extends rcube_cache
      *
      * @return mixed Cached value
      */
+    #[Override]
     protected function get_item($key)
     {
         if (!$this->enabled) {
@@ -93,8 +89,9 @@ class rcube_cache_apc extends rcube_cache
      * @param string $key  Cache internal key name
      * @param mixed  $data Serialized cache data
      *
-     * @param bool True on success, False on failure
+     * @return bool True on success, False on failure
      */
+    #[Override]
     protected function add_item($key, $data)
     {
         if (!$this->enabled) {
@@ -119,8 +116,9 @@ class rcube_cache_apc extends rcube_cache
      *
      * @param string $key Cache internal key name
      *
-     * @param bool True on success, False on failure
+     * @return bool True on success, False on failure
      */
+    #[Override]
     protected function delete_item($key)
     {
         if (!$this->enabled) {
