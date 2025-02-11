@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -20,9 +20,6 @@
 
 /**
  * Helper class for spoofing detection.
- *
- * @package    Framework
- * @subpackage Utils
  */
 class rcube_spoofchecker
 {
@@ -53,14 +50,12 @@ class rcube_spoofchecker
             // Note: The constant (and method?) added in PHP 7.3.0
             if (defined('Spoofchecker::HIGHLY_RESTRICTIVE')) {
                 $checker->setRestrictionLevel(Spoofchecker::HIGHLY_RESTRICTIVE);
-            }
-            else {
+            } else {
                 $checker->setChecks(Spoofchecker::SINGLE_SCRIPT | Spoofchecker::INVISIBLE);
             }
 
             $result = $checker->isSuspicious($domain);
-        }
-        catch (Throwable $e) {
+        } catch (Throwable $e) {
             rcube::raise_error($e, true);
             $result = false;
         }
