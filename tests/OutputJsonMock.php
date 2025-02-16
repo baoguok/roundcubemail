@@ -1,6 +1,8 @@
 <?php
 
-/**
+namespace Roundcube\Tests;
+
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -19,16 +21,16 @@
 
 /**
  * A class for easier testing of code that uses rcmail_output classes
- *
- * @package Tests
  */
-class OutputJsonMock extends rcmail_output_json
+class OutputJsonMock extends \rcmail_output_json
 {
-    const E_EXIT     = 101;
-    const E_REDIRECT = 102;
+    public const E_EXIT = 101;
+    public const E_REDIRECT = 102;
 
     public $output;
     public $headers = [];
+    public $errorCode;
+    public $errorMessage;
 
     /**
      * Redirect to a certain url
@@ -38,6 +40,7 @@ class OutputJsonMock extends rcmail_output_json
      *
      * @see rcmail::url()
      */
+    #[\Override]
     public function redirect($p = [], $delay = 1)
     {
         $location = $this->app->url($p);
@@ -47,12 +50,13 @@ class OutputJsonMock extends rcmail_output_json
         $this->output = ob_get_contents();
         ob_end_clean();
 
-        throw new ExitException("Location: $location", self::E_REDIRECT);
+        throw new ExitException("Location: {$location}", self::E_REDIRECT);
     }
 
     /**
      * Send an AJAX response to the client.
      */
+    #[\Override]
     public function send()
     {
         ob_start();
@@ -60,7 +64,7 @@ class OutputJsonMock extends rcmail_output_json
         $this->output = ob_get_contents();
         ob_end_clean();
 
-        throw new ExitException("Output sent", self::E_EXIT);
+        throw new ExitException('Output sent', self::E_EXIT);
     }
 
     /**
@@ -69,6 +73,7 @@ class OutputJsonMock extends rcmail_output_json
      * @param string $body    The output body
      * @param array  $headers Headers
      */
+    #[\Override]
     public function sendExit($body = '', $headers = [])
     {
         foreach ($headers as $header) {
@@ -77,7 +82,22 @@ class OutputJsonMock extends rcmail_output_json
 
         $this->output = $body;
 
-        throw new ExitException("Output sent", self::E_EXIT);
+        throw new ExitException('Output sent', self::E_EXIT);
+    }
+
+    /**
+     * A helper to send HTTP error code and message to the browser, and exit.
+     *
+     * @param int    $code    The HTTP error code
+     * @param string $message The HTTP error message
+     */
+    #[\Override]
+    public function sendExitError($code, $message = '')
+    {
+        $this->errorCode = $code;
+        $this->errorMessage = $message;
+
+        throw new ExitException('Output sent (error)', self::E_EXIT);
     }
 
     /**
@@ -86,32 +106,37 @@ class OutputJsonMock extends rcmail_output_json
      * @param int    $code    Error code
      * @param string $message Error message
      */
+    #[\Override]
     public function raise_error($code, $message)
     {
         if ($code == 403) {
-            throw new ExitException("403 Forbidden", self::E_EXIT);
+            throw new ExitException('403 Forbidden', self::E_EXIT);
         }
 
-        $this->show_message("Application Error ($code): $message", 'error');
+        $this->show_message("Application Error ({$code}): {$message}", 'error');
 
         ob_start();
         $this->remote_response();
         $this->output = ob_get_contents();
         ob_end_clean();
 
-        throw new ExitException("Error $code raised", self::E_EXIT);
+        throw new ExitException("Error {$code} raised", self::E_EXIT);
     }
 
     /**
      * Delete all stored env variables and commands
      */
+    #[\Override]
     public function reset()
     {
         parent::reset();
 
-        $this->headers     = [];
-        $this->output      = null;
+        $this->headers = [];
+        $this->output = null;
         $this->header_sent = false;
+
+        $this->errorCode = null;
+        $this->errorMessage = null;
     }
 
     /**
@@ -120,6 +145,7 @@ class OutputJsonMock extends rcmail_output_json
      * @param string $header  The header string
      * @param bool   $replace Replace previously set header?
      */
+    #[\Override]
     public function header($header, $replace = true)
     {
         $this->headers[] = $header;
