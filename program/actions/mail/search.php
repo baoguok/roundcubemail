@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -27,6 +27,7 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
      *
      * @param array $args Arguments from the previous step(s)
      */
+    #[Override]
     public function run($args = [])
     {
         $rcmail = rcmail::get_instance();
@@ -39,11 +40,11 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
         $_SESSION['page'] = 1;
 
         // get search string
-        $str      = trim(rcube_utils::get_input_string('_q', rcube_utils::INPUT_GET, true));
-        $mbox     = trim(rcube_utils::get_input_string('_mbox', rcube_utils::INPUT_GET, true));
-        $filter   = trim(rcube_utils::get_input_string('_filter', rcube_utils::INPUT_GET));
-        $headers  = trim(rcube_utils::get_input_string('_headers', rcube_utils::INPUT_GET));
-        $scope    = trim(rcube_utils::get_input_string('_scope', rcube_utils::INPUT_GET));
+        $str = trim(rcube_utils::get_input_string('_q', rcube_utils::INPUT_GET, true));
+        $mbox = trim(rcube_utils::get_input_string('_mbox', rcube_utils::INPUT_GET, true));
+        $filter = trim(rcube_utils::get_input_string('_filter', rcube_utils::INPUT_GET));
+        $headers = trim(rcube_utils::get_input_string('_headers', rcube_utils::INPUT_GET));
+        $scope = trim(rcube_utils::get_input_string('_scope', rcube_utils::INPUT_GET));
         $interval = trim(rcube_utils::get_input_string('_interval', rcube_utils::INPUT_GET));
         $continue = trim(rcube_utils::get_input_string('_continue', rcube_utils::INPUT_GET));
 
@@ -52,8 +53,7 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
             $rcmail->storage->set_search_set($_SESSION['search']);
             $search = $_SESSION['search'][0];
             $search_request = $continue;
-        }
-        else {
+        } else {
             // Parse input parameters into an IMAP search criteria
             $search = self::search_input($str, $headers, $filter, $interval);
             $search_request = md5($mbox . $scope . $interval . $filter . $str);
@@ -65,7 +65,7 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
         }
 
         $sort_column = self::sort_column();
-        $sort_order  = self::sort_order();
+        $sort_order = self::sort_order();
 
         // execute IMAP search
         if ($search) {
@@ -76,9 +76,8 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
                 $mboxes = $rcmail->storage->list_folders_subscribed('', '*', 'mail', null, true);
                 // we want natural alphabetic sorting of folders in the result set
                 natcasesort($mboxes);
-            }
-            else if ($scope == 'sub') {
-                $delim  = $rcmail->storage->get_hierarchy_delimiter();
+            } elseif ($scope == 'sub') {
+                $delim = $rcmail->storage->get_hierarchy_delimiter();
                 $mboxes = $rcmail->storage->list_folders_subscribed($mbox . $delim, '*', 'mail');
                 array_unshift($mboxes, $mbox);
             }
@@ -102,10 +101,10 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
             $_SESSION['last_text_search'] = $str;
         }
 
-        $_SESSION['search_request']  = $search_request;
-        $_SESSION['search_scope']    = $scope;
+        $_SESSION['search_request'] = $search_request;
+        $_SESSION['search_scope'] = $scope;
         $_SESSION['search_interval'] = $interval;
-        $_SESSION['search_filter']   = $filter;
+        $_SESSION['search_filter'] = $filter;
 
         // Get the headers
         if (!isset($result) || empty($result->incomplete)) {
@@ -133,16 +132,15 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
             }
         }
         // handle IMAP errors (e.g. #1486905)
-        else if ($err_code = $rcmail->storage->get_error_code()) {
+        elseif ($err_code = $rcmail->storage->get_error_code()) {
             $count = 0;
             self::display_server_error();
         }
         // advice the client to re-send the (cross-folder) search request
-        else if (!empty($result) && !empty($result->incomplete)) {
+        elseif (!empty($result) && !empty($result->incomplete)) {
             $count = 0;  // keep UI locked
             $rcmail->output->command('continue_search', $search_request);
-        }
-        else {
+        } else {
             $count = 0;
 
             $rcmail->output->show_message('searchnomatch', 'notice');
@@ -188,14 +186,13 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
         $interval = strtoupper($interval);
 
         if ($interval[0] == '-') {
-            $search   = 'BEFORE';
+            $search = 'BEFORE';
             $interval = substr($interval, 1);
-        }
-        else {
+        } else {
             $search = 'SINCE';
         }
 
-        $date     = new DateTime('now');
+        $date = new DateTime('now');
         $interval = new DateInterval('P' . $interval);
 
         $date->sub($interval);
@@ -225,10 +222,10 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
             $result .= ' ' . $search_interval;
         }
 
-        $value_function = function ($value) {
+        $value_function = static function ($value) {
             $value = trim($value);
             $value = preg_replace('/(^"|"$)/', '', $value);
-            $value = str_replace('\\"', '"', $value);
+            $value = str_replace('\"', '"', $value);
 
             return $value;
         };
@@ -252,7 +249,7 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
 
             if (preg_match('/^(-?[a-zA-Z-]+):(.*)$/', $part, $matches)) {
                 $option = $matches[1];
-                $value  = $value_function($matches[2]);
+                $value = $value_function($matches[2]);
 
                 if ($option[0] == '-') {
                     $not = 'NOT ';
@@ -293,8 +290,7 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
                 }
 
                 unset($parts[$idx]);
-            }
-            else if ($part == 'AND') {
+            } elseif ($part == 'AND') {
                 unset($parts[$idx]);
             }
         }
@@ -319,97 +315,88 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
         }
 
         $supported = ['subject', 'from', 'to', 'cc', 'bcc'];
-        $option    = strtolower($option);
-        $escaped   = rcube_imap_generic::escape($value);
+        $option = strtolower($option);
+        $escaped = rcube_imap_generic::escape($value);
 
         switch ($option) {
-        case 'body':
-            return "BODY {$escaped}";
-
-        case 'text':
-            return "TEXT {$escaped}";
-
-        case 'replyto':
-        case 'reply-to':
-            return "OR HEADER REPLY-TO {$escaped} HEADER MAIL-REPLY-TO {$escaped}";
-
-        case 'followupto':
-        case 'followup-to':
-            return "OR HEADER FOLLOWUP-TO {$escaped} HEADER MAIL-FOLLOWUP-TO {$escaped}";
-
-        case 'larger':
-        case 'smaller':
-            if (preg_match('/([0-9\.]+)(k|m|g|b|kb|mb|gb)/i', $value)) {
-                return strtoupper($option) . ' ' . parse_bytes($value);
-            }
-
-            break;
-
-        case 'is':
-            $map = [
-                'unread' => 'UNSEEN',
-                'read' => 'SEEN',
-                'unseen' => 'UNSEEN',
-                'seen' => 'SEEN',
-                'flagged' => 'FLAGGED',
-                'unflagged' => 'UNFLAGGED',
-                'deleted' => 'DELETED',
-                'undeleted' => 'UNDELETED',
-                'answered' => 'ANSWERED',
-                'unanswered' => 'UNANSWERED',
-            ];
-
-            $value = strtolower($value);
-            if (isset($map[$value])) {
-                return $map[$value];
-            }
-
-            break;
-
-        case 'has':
-            if ($value == 'attachment') {
-                // Content-Type values of messages with attachments
-                // the same as in app.js:add_message_row()
-                $ctypes = ['application/', 'multipart/m', 'multipart/signed', 'multipart/report'];
-
-                // Build search string of "with attachment" filter
-                $result = str_repeat(' OR', count($ctypes) - 1);
-                foreach ($ctypes as $type) {
-                    $result .= ' HEADER Content-Type ' . rcube_imap_generic::escape($type);
+            case 'body':
+                return "BODY {$escaped}";
+            case 'text':
+                return "TEXT {$escaped}";
+            case 'replyto':
+            case 'reply-to':
+                return "OR HEADER REPLY-TO {$escaped} HEADER MAIL-REPLY-TO {$escaped}";
+            case 'followupto':
+            case 'followup-to':
+                return "OR HEADER FOLLOWUP-TO {$escaped} HEADER MAIL-FOLLOWUP-TO {$escaped}";
+            case 'larger':
+            case 'smaller':
+                if (preg_match('/([0-9\.]+)(k|m|g|b|kb|mb|gb)/i', $value)) {
+                    return strtoupper($option) . ' ' . parse_bytes($value);
                 }
 
-                return trim($result);
-            }
+                break;
+            case 'is':
+                $map = [
+                    'unread' => 'UNSEEN',
+                    'read' => 'SEEN',
+                    'unseen' => 'UNSEEN',
+                    'seen' => 'SEEN',
+                    'flagged' => 'FLAGGED',
+                    'unflagged' => 'UNFLAGGED',
+                    'deleted' => 'DELETED',
+                    'undeleted' => 'UNDELETED',
+                    'answered' => 'ANSWERED',
+                    'unanswered' => 'UNANSWERED',
+                ];
 
-            break;
-
-        case 'older_than': // GMail alias
-            $option = 'before';
-        case 'newer_than': // GMail alias
-            $option = 'since';
-        case 'since':
-        case 'before':
-            if (preg_match('/^[0-9]+[WMY]$/i', $value)) {
-                if ($option == 'before') {
-                    $value = "-{$value}";
+                $value = strtolower($value);
+                if (isset($map[$value])) {
+                    return $map[$value];
                 }
 
-                if ($search_interval = self::search_interval_criteria(strtoupper($value))) {
-                    return $search_interval;
+                break;
+            case 'has':
+                if ($value == 'attachment') {
+                    // Content-Type values of messages with attachments
+                    // the same as in app.js:add_message_row()
+                    $ctypes = ['application/', 'multipart/mixed', 'multipart/signed', 'multipart/report'];
+
+                    // Build search string of "with attachment" filter
+                    $result = str_repeat(' OR', count($ctypes) - 1);
+                    foreach ($ctypes as $type) {
+                        $result .= ' HEADER Content-Type ' . rcube_imap_generic::escape($type);
+                    }
+
+                    return trim($result);
                 }
-            }
-            else if (preg_match('|^([0-9]{4})[-/]([0-9]{1,2})[-/]([0-9]{1,2})$|i', $value, $m)) {
-                $dt = new DateTime(sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]) . 'T00:00:00Z');
-                return strtoupper($option) . ' ' . $dt->format('j-M-Y');
-            }
 
-            break;
+                break;
+            case 'older_than': // GMail alias
+                $option = 'before';
+            case 'newer_than': // GMail alias
+                $option = 'since';
+            case 'since':
+            case 'before':
+                if (preg_match('/^[0-9]+[WMY]$/i', $value)) {
+                    if ($option == 'before') {
+                        $value = "-{$value}";
+                    }
 
-        default:
-            if (in_array($option, $supported)) {
-                $header = strtoupper($option);
-                return "HEADER {$header} {$escaped}";
-            }
+                    if ($search_interval = self::search_interval_criteria(strtoupper($value))) {
+                        return $search_interval;
+                    }
+                } elseif (preg_match('|^([0-9]{4})[-/]([0-9]{1,2})[-/]([0-9]{1,2})$|i', $value, $m)) {
+                    $dt = new DateTime(sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]) . 'T00:00:00Z');
+                    return strtoupper($option) . ' ' . $dt->format('j-M-Y');
+                }
+
+                break;
+            default:
+                if (in_array($option, $supported)) {
+                    $header = strtoupper($option);
+                    return "HEADER {$header} {$escaped}";
+                }
         }
 
         return null;
@@ -455,10 +442,10 @@ class rcmail_action_mail_search extends rcmail_action_mail_index
     protected static function update_search_mods($mbox, $headers)
     {
         $supported = ['subject', 'from', 'to', 'cc', 'bcc', 'replyto', 'followupto', 'body', 'text'];
-        $headers   = explode(',', strtolower($headers));
-        $headers   = array_intersect($headers, $supported);
+        $headers = explode(',', strtolower($headers));
+        $headers = array_intersect($headers, $supported);
 
-        $search_mods       = self::search_mods();
+        $search_mods = self::search_mods();
         $search_mods_value = array_fill_keys($headers, 1);
 
         if (!isset($search_mods[$mbox]) || $search_mods[$mbox] != $search_mods_value) {

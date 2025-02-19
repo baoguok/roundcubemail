@@ -1,6 +1,8 @@
 <?php
 
-/**
+namespace Roundcube\Tests;
+
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -19,16 +21,16 @@
 
 /**
  * A class for easier testing of code that uses rcmail_output classes
- *
- * @package Tests
  */
-class OutputHtmlMock extends rcmail_output_html
+class OutputHtmlMock extends \rcmail_output_html
 {
-    const E_EXIT     = 101;
-    const E_REDIRECT = 102;
+    public const E_EXIT = 101;
+    public const E_REDIRECT = 102;
 
     public $output;
-    public $headers  = [];
+    public $headers = [];
+    public $errorCode;
+    public $errorMessage;
     public $template = '';
 
     /**
@@ -38,6 +40,7 @@ class OutputHtmlMock extends rcmail_output_html
      * @param int   $delay  Delay in seconds
      * @param bool  $secure Redirect to secure location (see rcmail::url())
      */
+    #[\Override]
     public function redirect($p = [], $delay = 1, $secure = false)
     {
         if (!empty($this->env['extwin'])) {
@@ -47,16 +50,17 @@ class OutputHtmlMock extends rcmail_output_html
         $location = $this->app->url($p, false, false, $secure);
 
         // header('Location: ' . $location);
-        throw new ExitException("Location: $location", self::E_REDIRECT);
+        throw new ExitException("Location: {$location}", self::E_REDIRECT);
     }
 
     /**
      * Send the request output to the client.
      * This will either parse a skin template.
      *
-     * @param string  $templ Template name
-     * @param boolean $exit  True if script should terminate (default)
+     * @param string $templ Template name
+     * @param bool   $exit  True if script should terminate (default)
      */
+    #[\Override]
     public function send($templ = null, $exit = true)
     {
         $this->template = $templ;
@@ -64,7 +68,7 @@ class OutputHtmlMock extends rcmail_output_html
         parent::send($templ, false);
 
         if ($exit) {
-            throw new ExitException("Output sent", self::E_EXIT);
+            throw new ExitException('Output sent', self::E_EXIT);
         }
     }
 
@@ -74,15 +78,31 @@ class OutputHtmlMock extends rcmail_output_html
      * @param string $body    The output body
      * @param array  $headers Headers
      */
+    #[\Override]
     public function sendExit($body = '', $headers = [])
     {
         foreach ($headers as $header) {
             $this->header($header);
         }
 
-        $this->output = $body;
+        $this->output .= $body;
 
-        throw new ExitException("Output sent", self::E_EXIT);
+        throw new ExitException('Output sent', self::E_EXIT);
+    }
+
+    /**
+     * A helper to send HTTP error code and message to the browser, and exit.
+     *
+     * @param int    $code    The HTTP error code
+     * @param string $message The HTTP error message
+     */
+    #[\Override]
+    public function sendExitError($code, $message = '')
+    {
+        $this->errorCode = $code;
+        $this->errorMessage = $message;
+
+        throw new ExitException('Output sent (error)', self::E_EXIT);
     }
 
     /**
@@ -90,6 +110,7 @@ class OutputHtmlMock extends rcmail_output_html
      *
      * @param string $template HTML template content
      */
+    #[\Override]
     public function write($template = '')
     {
         ob_start();
@@ -101,34 +122,39 @@ class OutputHtmlMock extends rcmail_output_html
     /**
      * Parse a specific skin template and deliver to stdout (or return)
      *
-     * @param string  $name  Template name
-     * @param boolean $exit  Exit script
-     * @param boolean $write Don't write to stdout, return parsed content instead
+     * @param string $name  Template name
+     * @param bool   $exit  Exit script
+     * @param bool   $write Don't write to stdout, return parsed content instead
      *
-     * @link http://php.net/manual/en/function.exit.php
+     * @see http://php.net/manual/en/function.exit.php
      */
-    function parse($name = 'main', $exit = true, $write = true)
+    #[\Override]
+    public function parse($name = 'main', $exit = true, $write = true)
     {
-        //ob_start();
+        // ob_start();
         parent::parse($name, false, $write);
-        //$this->output = ob_get_contents();
-        //ob_end_clean();
+        // $this->output = ob_get_contents();
+        // ob_end_clean();
 
         if ($exit) {
-            throw new ExitException("Output sent", self::E_EXIT);
+            throw new ExitException('Output sent', self::E_EXIT);
         }
     }
 
     /**
      * Delete all stored env variables and commands
      */
+    #[\Override]
     public function reset($all = false)
     {
         parent::reset($all);
 
-        $this->headers  = [];
-        $this->output   = null;
+        $this->headers = [];
+        $this->output = null;
         $this->template = null;
+
+        $this->errorCode = null;
+        $this->errorMessage = null;
     }
 
     /**
@@ -137,6 +163,7 @@ class OutputHtmlMock extends rcmail_output_html
      * @param string $header  The header string
      * @param bool   $replace Replace previously set header?
      */
+    #[\Override]
     public function header($header, $replace = true)
     {
         $this->headers[] = $header;

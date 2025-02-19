@@ -1,12 +1,11 @@
 <?php
 
-/**
+/*
  * LDAP - Password Modify Extended Operation Driver
  *
  * Driver for passwords stored in SAMBA Active Directory
- * This driver is based on Simple LDAP Password Driver, but uses
- * ldap_modify method (SAMBA Active Directory support)
- * PHP >= 7.2 required
+ * This driver is based on Simple LDAP Password Driver, but
+ * updates only single attribute: unicodePwd
  *
  * @version 1.0
  * @author Jonas Holm Bundgaard <jhb@jbweb.dk>
@@ -25,23 +24,22 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see http://www.gnu.org/licenses/.
+ * along with this program. If not, see https://www.gnu.org/licenses/.
  */
 
 require_once __DIR__ . '/ldap_simple.php';
 
 class rcube_ldap_samba_ad_password extends rcube_ldap_simple_password
 {
-    function save($curpass, $passwd)
+    #[Override]
+    public function save($curpass, $passwd)
     {
         if (!function_exists('ldap_mod_replace')) {
             rcube::raise_error([
-                    'code' => 100, 'type' => 'ldap',
-                    'file' => __FILE__, 'line' => __LINE__,
-                    'message' => "ldap_mod_replace() not supported"
-                ],
-                true
-            );
+                'code' => 100,
+                'type' => 'ldap',
+                'message' => 'Password plugin: ldap_mod_replace() not supported',
+            ], true);
 
             return PASSWORD_ERROR;
         }
@@ -52,14 +50,14 @@ class rcube_ldap_samba_ad_password extends rcube_ldap_simple_password
             return $ret;
         }
 
-        $entry = [
-            'unicodePwd' => password::hash_password($passwd, 'ad')
-        ];
+        $hash = password::hash_password($passwd, 'ad');
+
+        $entry = ['unicodePwd' => $hash];
 
         $this->_debug("C: Replace password for {$this->user}: " . print_r($entry, true));
 
         if (!ldap_mod_replace($this->conn, $this->user, $entry)) {
-            $this->_debug("S: " . ldap_error($this->conn));
+            $this->_debug('S: ' . ldap_error($this->conn));
 
             $errno = ldap_errno($this->conn);
 
@@ -72,7 +70,7 @@ class rcube_ldap_samba_ad_password extends rcube_ldap_simple_password
             return PASSWORD_CONNECT_ERROR;
         }
 
-        $this->_debug("S: OK");
+        $this->_debug('S: OK');
 
         // All done, no error
         ldap_unbind($this->conn);
