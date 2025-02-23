@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -15,65 +15,64 @@
 */
 
 if (!class_exists('rcmail_install', false) || !isset($RCI)) {
-    die("Not allowed! Please open installer/index.php instead.");
+    exit('Not allowed! Please use installer.php instead.');
 }
 
 // allow the current user to get to the next step
 $_SESSION['allowinstaller'] = true;
 
 if (!empty($_POST['submit'])) {
-  $_SESSION['config'] = $RCI->create_config();
+    $_SESSION['config'] = $RCI->create_config();
 
-  if ($RCI->save_configfile($_SESSION['config'])) {
-     echo '<p class="notice">The config file was saved successfully into'
-        . ' <tt>'.RCMAIL_CONFIG_DIR.'</tt> directory of your Roundcube installation.';
+    if ($RCI->save_configfile($_SESSION['config'])) {
+        echo '<p class="notice">The config file was saved successfully into'
+           . ' <tt>' . RCMAIL_CONFIG_DIR . '</tt> directory of your Roundcube installation.';
 
-     if ($RCI->legacy_config) {
-        echo '<br/><br/>Afterwards, please <b>remove</b> the old configuration files'
-            . ' <tt>main.inc.php</tt> and <tt>db.inc.php</tt> from the config directory.';
-     }
+        if ($RCI->legacy_config) {
+            echo '<br/><br/>Afterwards, please <b>remove</b> the old configuration files'
+                . ' <tt>main.inc.php</tt> and <tt>db.inc.php</tt> from the config directory.';
+        }
 
-     echo '</p>';
-  }
-  else {
-    $save_button = '';
-    if (($dir = sys_get_temp_dir()) && @is_writable($dir)) {
-      echo '<iframe name="getconfig" style="display:none"></iframe>';
-      echo '<form id="getconfig_form" action="index.php" method="get" target="getconfig" style="display:none">';
-      echo '<input name="_getconfig" value="2" /></form>';
+        echo '</p>';
+    } else {
+        $save_button = '';
+        if (($dir = sys_get_temp_dir()) && @is_writable($dir)) {
+            echo '<iframe name="getconfig" style="display:none"></iframe>';
+            echo '<form id="getconfig_form" action="?" method="get" target="getconfig" style="display:none">';
+            echo '<input name="_getconfig" value="2" /></form>';
 
-      $button_txt  = html::quote('Save in ' . $dir);
-      $save_button = '&nbsp;<input type="button" onclick="document.getElementById(\'getconfig_form\').submit()" value="' . $button_txt . '" />';
+            $button_txt = html::quote('Save in ' . $dir);
+            $save_button = '&nbsp;<input type="button" onclick="document.getElementById(\'getconfig_form\').submit()" value="' . $button_txt . '" />';
+        }
+
+        echo '<p class="notice">Copy or download the following configuration and save it';
+        echo ' as <tt><b>config.inc.php</b></tt> within the <tt>' . RCUBE_CONFIG_DIR . '</tt> directory of your Roundcube installation.<br/>';
+        echo ' Make sure that there are no characters before the <tt>&lt;?php</tt> bracket when saving the file.';
+        echo '&nbsp;<input type="button" onclick="location.href=\'?_getconfig=1\'" value="Download" />';
+        echo $save_button;
+
+        if ($RCI->legacy_config) {
+            echo '<br/><br/>Afterwards, please <b>remove</b> the old configuration files'
+             . ' <tt>main.inc.php</tt> and <tt>db.inc.php</tt> from the config directory.';
+        }
+
+        echo '</p>';
+
+        $textbox = new html_textarea(['rows' => 16, 'cols' => 60, 'class' => 'configfile']);
+        echo $textbox->show($_SESSION['config']);
     }
 
-    echo '<p class="notice">Copy or download the following configuration and save it';
-    echo ' as <tt><b>config.inc.php</b></tt> within the <tt>'.RCUBE_CONFIG_DIR.'</tt> directory of your Roundcube installation.<br/>';
-    echo ' Make sure that there are no characters before the <tt>&lt;?php</tt> bracket when saving the file.';
-    echo '&nbsp;<input type="button" onclick="location.href=\'index.php?_getconfig=1\'" value="Download" />';
-    echo $save_button;
-
-    if ($RCI->legacy_config) {
-       echo '<br/><br/>Afterwards, please <b>remove</b> the old configuration files'
-        . ' <tt>main.inc.php</tt> and <tt>db.inc.php</tt> from the config directory.';
-    }
-
-    echo '</p>';
-
-    $textbox = new html_textarea(['rows' => 16, 'cols' => 60, 'class' => 'configfile']);
-    echo $textbox->show(($_SESSION['config']));
-  }
-
-  echo '<p class="hint">Of course there are more options to configure.
+    echo '<p class="hint">Of course there are more options to configure.
     Have a look at the defaults.inc.php file or visit <a href="https://github.com/roundcube/roundcubemail/wiki/Configuration" target="_blank">Howto_Config</a> to find out.</p>';
 
-  echo '<p><input type="button" onclick="location.href=\'./index.php?_step=3\'" value="CONTINUE" /></p>';
+    echo '<p><input type="button" onclick="location.href=\'?_step=3\'" value="CONTINUE" /></p>';
 
-  // echo '<style type="text/css"> .configblock { display:none } </style>';
-  echo "\n<hr style='margin-bottom:1.6em' />\n";
+    // echo '<style type="text/css"> .configblock { display:none } </style>';
+    echo "\n<hr style='margin-bottom:1.6em' />\n";
 }
 
 ?>
-<form action="index.php" method="post">
+<form action="?" method="post">
 <input type="hidden" name="_step" value="2" />
 
 <fieldset>
@@ -131,7 +130,7 @@ echo $input_deskey->show($RCI->getprop('des_key'));
 <?php
 
 $check_ipcheck = new html_checkbox(['name' => '_ip_check', 'id' => 'cfgipcheck']);
-echo $check_ipcheck->show(intval($RCI->getprop('ip_check')), array('value' => 1));
+echo $check_ipcheck->show(intval($RCI->getprop('ip_check')), ['value' => 1]);
 
 ?>
 <label for="cfgipcheck">Check client IP in session authorization</label><br />
@@ -201,11 +200,11 @@ echo $input_ilevel->show($RCI->getprop('identities_level'), 0);
 
 <?php
 $select_log_driver = new html_select(['name' => '_log_driver', 'id' => 'cfglogdriver']);
-$select_log_driver->add(['file', 'syslog', 'stdout'], ['file', 'syslog', 'stdout']);
+$select_log_driver->add(['file', 'syslog', 'stdout', 'php'], ['file', 'syslog', 'stdout', 'php']);
 echo $select_log_driver->show($RCI->getprop('log_driver', 'file'));
 ?>
 
-<div>How to do logging? 'file' - write to files in the log directory, 'syslog' - use the syslog facility, 'stdout' writes to the process' STDOUT file descriptor.</div>
+<div>How to do logging? 'file' - write to files in the log directory, 'syslog' - use the syslog facility, 'stdout' writes to the process' STDOUT file descriptor, 'php' writes to php's configured error_log facility.</div>
 </dd>
 
 <dt class="propname">log_dir</dt>
@@ -235,21 +234,21 @@ echo $input_syslogid->show($RCI->getprop('syslog_id', 'roundcube'));
 <?php
 
 $input_syslogfacility = new html_select(['name' => '_syslog_facility', 'id' => 'cfgsyslogfacility']);
-$input_syslogfacility->add('user-level messages', LOG_USER);
+$input_syslogfacility->add('user-level messages', \LOG_USER);
 if (defined('LOG_MAIL')) {
-    $input_syslogfacility->add('mail subsystem', LOG_MAIL);
+    $input_syslogfacility->add('mail subsystem', \LOG_MAIL);
 }
 if (defined('LOG_LOCAL0')) {
-    $input_syslogfacility->add('local level 0', LOG_LOCAL0);
-    $input_syslogfacility->add('local level 1', LOG_LOCAL1);
-    $input_syslogfacility->add('local level 2', LOG_LOCAL2);
-    $input_syslogfacility->add('local level 3', LOG_LOCAL3);
-    $input_syslogfacility->add('local level 4', LOG_LOCAL4);
-    $input_syslogfacility->add('local level 5', LOG_LOCAL5);
-    $input_syslogfacility->add('local level 6', LOG_LOCAL6);
-    $input_syslogfacility->add('local level 7', LOG_LOCAL7);
+    $input_syslogfacility->add('local level 0', \LOG_LOCAL0);
+    $input_syslogfacility->add('local level 1', \LOG_LOCAL1);
+    $input_syslogfacility->add('local level 2', \LOG_LOCAL2);
+    $input_syslogfacility->add('local level 3', \LOG_LOCAL3);
+    $input_syslogfacility->add('local level 4', \LOG_LOCAL4);
+    $input_syslogfacility->add('local level 5', \LOG_LOCAL5);
+    $input_syslogfacility->add('local level 6', \LOG_LOCAL6);
+    $input_syslogfacility->add('local level 7', \LOG_LOCAL7);
 }
-echo $input_syslogfacility->show($RCI->getprop('syslog_facility'), LOG_USER);
+echo $input_syslogfacility->show($RCI->getprop('syslog_facility'), \LOG_USER);
 
 ?>
 <div>What ID to use when logging with syslog.  Note that this only applies if you are using the 'syslog' log_driver.</div>
@@ -326,7 +325,7 @@ if (empty($default_hosts)) {
 
 $i = 0;
 foreach ($default_hosts as $host) {
-    echo '<div id="defaulthostentry'.$i.'">' . $text_imaphost->show($host);
+    echo '<div id="defaulthostentry' . $i . '">' . $text_imaphost->show($host);
     if ($i++ > 0) {
         echo '<a href="#" onclick="removehostfield(this.parentNode);return false" class="removelink" title="Remove this entry">remove</a>';
     }
@@ -492,7 +491,7 @@ echo $input_locale->show($RCI->getprop('language'));
 
 ?>
 <div>The default locale setting. This also defines the language of the login screen.<br/>Leave it empty to auto-detect the user agent language.</div>
-<p class="hint">Enter a <a href="http://www.faqs.org/rfcs/rfc1766">RFC1766</a> formatted language name. Examples: en_US, de_DE, de_CH, fr_FR, pt_BR</p>
+<p class="hint">Enter a <a href="https://www.faqs.org/rfcs/rfc1766">RFC1766</a> formatted language name. Examples: en_US, de_DE, de_CH, fr_FR, pt_BR</p>
 </dd>
 
 <dt class="propname">skin <span class="userconf">*</span></dt>
@@ -570,8 +569,8 @@ echo $select_htmlcomp->show(intval($RCI->getprop('htmleditor')));
 
 $select_autosave = new html_select(['name' => '_draft_autosave', 'id' => 'cfgautosave']);
 $select_autosave->add('never', 0);
-foreach ([1, 3, 5, 10] as $i => $min) {
-    $select_autosave->add("$min min", $min * 60);
+foreach ([1, 3, 5, 10] as $min) {
+    $select_autosave->add("{$min} min", $min * 60);
 }
 
 echo $select_autosave->show(intval($RCI->getprop('draft_autosave')));
@@ -604,7 +603,7 @@ echo $select_mdnreq->show(intval($RCI->getprop('mdn_requests')));
 <?php
 
 $select_param_folding = new html_select(['name' => '_mime_param_folding', 'id' => 'cfgmimeparamfolding']);
-$select_param_folding->add('Full RFC 2231 (Roundcube, Thunderbird)', '0'); 
+$select_param_folding->add('Full RFC 2231 (Roundcube, Thunderbird)', '0');
 $select_param_folding->add('RFC 2047/2231 (MS Outlook, OE)', '1');
 $select_param_folding->add('Full RFC 2047 (deprecated)', '2');
 
@@ -626,11 +625,11 @@ echo $select_param_folding->show(strval($RCI->getprop('mime_param_folding')));
 <?php
 $plugins = $RCI->list_plugins();
 foreach ($plugins as $p) {
-    $p_check = new html_checkbox(['name' => '_plugins_'.$p['name'], 'id' => 'cfgplugin_'.$p['name'], 'value' => $p['name']]);
+    $p_check = new html_checkbox(['name' => '_plugins_' . $p['name'], 'id' => 'cfgplugin_' . $p['name'], 'value' => $p['name']]);
     echo '<dt class="propname"><label>';
     echo $p_check->show($p['enabled'] ? $p['name'] : 0);
     echo '&nbsp;' . $p['name'] . '</label></dt><dd>';
-    echo '<label for="cfgplugin_'.$p['name'].'" class="hint">' . $p['desc'] . '</label><br/></dd>';
+    echo '<label for="cfgplugin_' . $p['name'] . '" class="hint">' . $p['desc'] . '</label><br/></dd>';
 }
 
 ?>

@@ -26,11 +26,11 @@ $config = [];
 // Database connection string (DSN) for read+write operations
 // Format (compatible with PEAR MDB2): db_provider://user:password@host/database
 // Currently supported db_providers: mysql, pgsql, sqlite
-// For examples see http://pear.php.net/manual/en/package.database.mdb2.intro-dsn.php
+// For examples see https://pear.php.net/manual/en/package.database.mdb2.intro-dsn.php
 // Note: for SQLite use absolute path (Linux): 'sqlite:////full/path/to/sqlite.db?mode=0646'
 //       or (Windows): 'sqlite:///C:/full/path/to/sqlite.db'
 // Note: Various drivers support various additional arguments for connection,
-//       for Mysql: key, cipher, cert, capath, ca, verify_server_cert,
+//       for Mysql: key, cipher, cert, capath, ca, verify_server_cert, emulate_prepares
 //       for Postgres: application_name, sslmode, sslcert, sslkey, sslrootcert, sslcrl, sslcompression, service.
 //       e.g. 'mysql://roundcube:@localhost/roundcubemail?verify_server_cert=false'
 $config['db_dsnw'] = 'mysql://roundcube:@localhost/roundcubemail';
@@ -44,7 +44,7 @@ $config['db_dsnw_noread'] = false;
 
 // use persistent db-connections
 // beware this will not "always" work as expected
-// see: http://www.php.net/manual/en/features.persistent-connections.php
+// see: https://www.php.net/manual/en/features.persistent-connections.php
 $config['db_persistent'] = false;
 
 // you can define specific table (and sequence) names prefix
@@ -54,10 +54,10 @@ $config['db_prefix'] = '';
 // This can be used in a setup with replicated databases and a DB master
 // where read/write access to cache tables should not go to master.
 $config['db_table_dsn'] = [
-//    'cache' => 'r',
-//    'cache_index' => 'r',
-//    'cache_thread' => 'r',
-//    'cache_messages' => 'r',
+    // 'cache' => 'r',
+    // 'cache_index' => 'r',
+    // 'cache_thread' => 'r',
+    // 'cache_messages' => 'r',
 ];
 
 // It is possible to specify database variable values e.g. some limits here.
@@ -66,16 +66,15 @@ $config['db_table_dsn'] = [
 // which limits query size for database cache operations.
 $config['db_max_allowed_packet'] = null;
 
-
 // ----------------------------------
 // LOGGING/DEBUGGING
 // ----------------------------------
 
-// log driver:  'syslog', 'stdout' or 'file'.
+// log driver:  'syslog', 'stdout', 'file', or 'php'.
 $config['log_driver'] = 'file';
 
 // date format for log entries
-// (read http://php.net/manual/en/function.date.php for all format characters)
+// (read https://php.net/manual/en/function.date.php for all format characters)
 $config['log_date_format'] = 'd-M-Y H:i:s O';
 
 // length of the session ID to prepend each log line with
@@ -89,8 +88,8 @@ $config['log_file_ext'] = '.log';
 $config['syslog_id'] = 'roundcube';
 
 // Syslog facility to use, if using the 'syslog' log driver.
-// For possible values see installer or http://php.net/manual/en/function.openlog.php
-$config['syslog_facility'] = LOG_USER;
+// For possible values see installer or https://php.net/manual/en/function.openlog.php
+$config['syslog_facility'] = \LOG_USER;
 
 // Activate this option if logs should be written to per-user directories.
 // Data will only be logged if a directory <log_dir>/<username>/ exists and is writable.
@@ -126,7 +125,6 @@ $config['apc_debug'] = false;
 // Log Redis conversation to <log_dir>/redis.log or to syslog
 $config['redis_debug'] = false;
 
-
 // ----------------------------------
 // IMAP
 // ----------------------------------
@@ -134,8 +132,7 @@ $config['redis_debug'] = false;
 // The IMAP host (and optionally port number) chosen to perform the log-in.
 // Leave blank to show a textbox at login, give a list of hosts
 // to display a pulldown menu or set one host as string.
-// Enter hostname with prefix ssl:// to use Implicit TLS, or use
-// prefix tls:// to use STARTTLS.
+// Enter hostname with prefix ssl:// to use Implicit TLS, or tls:// for STARTTLS.
 // If port number is omitted it will be set to 993 (for ssl://) or 143 otherwise.
 // Supported replacement variables:
 // %n - hostname ($_SERVER['SERVER_NAME'])
@@ -153,14 +150,14 @@ $config['imap_host'] = 'localhost:143';
 $config['imap_auth_type'] = null;
 
 // IMAP socket context options
-// See http://php.net/manual/en/context.ssl.php
+// See https://php.net/manual/en/context.ssl.php
 // The example below enables server certificate validation
 //
 // proxy_protocol is used to inject HAproxy style headers in the TCP stream
-// See http://www.haproxy.org/download/1.6/doc/proxy-protocol.txt
+// See https://www.haproxy.org/download/1.6/doc/proxy-protocol.txt
 // WARNING: Please note this is currently incompatible with implicit ssl,
 // since the proxy protocol preamble is expected before the ssl handshake.
-//$config['imap_conn_options'] = [
+// $config['imap_conn_options'] = [
 //    'ssl' => [
 //        'verify_peer'  => true,
 //        'verify_depth' => 3,
@@ -173,7 +170,7 @@ $config['imap_auth_type'] = null;
 //        'local_addr'    => $_SERVER['SERVER_ADDR'], // optional
 //        'local_port'    => $_SERVER['SERVER_PORT'], // optional
 //    ],
-//];
+// ];
 // Note: These can be also specified as an array of options indexed by hostname
 $config['imap_conn_options'] = null;
 
@@ -203,8 +200,8 @@ $config['imap_vendor'] = null;
 // Note: These can be used also to overwrite server's namespaces
 // Note: Set these to FALSE to disable access to specified namespace
 $config['imap_ns_personal'] = null;
-$config['imap_ns_other']    = null;
-$config['imap_ns_shared']   = null;
+$config['imap_ns_other'] = null;
+$config['imap_ns_shared'] = null;
 
 // By default IMAP capabilities are read after connection to IMAP server
 // In some cases, e.g. when using IMAP proxy, there's a need to refresh the list
@@ -243,7 +240,7 @@ $config['imap_disabled_caps'] = [];
 // This is used to relate IMAP session with Roundcube user sessions
 $config['imap_log_session'] = false;
 
-// Type of IMAP indexes cache. Supported values: 'db', 'apc' and 'memcache' or 'memcached'.
+// Type of IMAP indexes cache. Supported values: 'db', 'apc', 'redis' and 'memcache' or 'memcached'.
 $config['imap_cache'] = null;
 
 // Enables messages cache. Only 'db' cache is supported.
@@ -262,14 +259,12 @@ $config['messages_cache_ttl'] = '10d';
 // Note: On MySQL this should be less than (max_allowed_packet - 30%)
 $config['messages_cache_threshold'] = 50;
 
-
 // ----------------------------------
 // SMTP
 // ----------------------------------
 
 // SMTP server host (and optional port number) for sending mails.
-// Enter hostname with prefix ssl:// to use Implicit TLS, or use
-// prefix tls:// to use STARTTLS.
+// Enter hostname with prefix ssl:// to use Implicit TLS, or tls:// for STARTTLS.
 // If port number is omitted it will be set to 465 (for ssl://) or 587 otherwise.
 // Supported replacement variables:
 // %h - user's IMAP hostname
@@ -282,12 +277,12 @@ $config['messages_cache_threshold'] = 50;
 // of IMAP host (no prefix or port) and SMTP server e.g. ['imap.example.com' => 'smtp.example.net']
 $config['smtp_host'] = 'localhost:587';
 
-// SMTP username (if required) if you use %u as the username Roundcube
-// will use the current username for login
+// SMTP username (if required)
+// Note: %u variable will be replaced with current user's username
 $config['smtp_user'] = '%u';
 
-// SMTP password (if required) if you use %p as the password Roundcube
-// will use the current user's password for login
+// SMTP password (if required)
+// Note: When set to '%p' current user's password will be used
 $config['smtp_pass'] = '%p';
 
 // SMTP AUTH type (DIGEST-MD5, CRAM-MD5, LOGIN, PLAIN or empty to use
@@ -306,7 +301,6 @@ $config['smtp_xclient_login'] = false;
 // Pass the remote IP (XCLIENT ADDR) to the server
 $config['smtp_xclient_addr'] = false;
 
-
 // SMTP HELO host
 // Hostname to give to the remote server for SMTP 'HELO' or 'EHLO' messages
 // Leave this blank and you will get the server variable 'server_name' or
@@ -319,25 +313,27 @@ $config['smtp_helo_host'] = '';
 $config['smtp_timeout'] = 0;
 
 // SMTP socket context options
-// See http://php.net/manual/en/context.ssl.php
+// See https://php.net/manual/en/context.ssl.php
 // The example below enables server certificate validation, and
 // requires 'smtp_timeout' to be non zero.
 // $config['smtp_conn_options'] = [
-//   'ssl'         => [
-//     'verify_peer'  => true,
-//     'verify_depth' => 3,
-//     'cafile'       => '/etc/openssl/certs/ca.crt',
-//   ],
+//     'ssl' => [
+//         'verify_peer'  => true,
+//         'verify_depth' => 3,
+//         'cafile'       => '/etc/openssl/certs/ca.crt',
+//     ],
 // ];
 // Note: These can be also specified as an array of options indexed by hostname
 $config['smtp_conn_options'] = null;
-
 
 // ----------------------------------
 // OAuth
 // ----------------------------------
 
 // Enable OAuth2 by defining a provider. Use 'generic' here
+// if enabled you can activate the Backchannel Logout specifying:
+// https://<your roundcube instance>/index.php/login/backchannel to your Identity provider
+// if you are using the backchannel, you mmust activate `oauth_cache`
 $config['oauth_provider'] = null;
 
 // Provider name to be displayed on the login button
@@ -349,20 +345,38 @@ $config['oauth_client_id'] = null;
 // Mandatory: OAuth client secret
 $config['oauth_client_secret'] = null;
 
+// Optional: the OIDC discovery URI (the 'https://.../.well-known/openid-configuration')
+// if specified, the discovery will supersede `oauth_issuer`, `oauth_auth_uri`, `oauth_token_uri`, `oauth_identity_uri`, `oauth_logout_uri`, `oauth_jwks_uri`
+// it is recommanded to activate a cache via `oauth_cache` and `oauth_cache_ttl`
+$config['oauth_config_uri'] = null;
+
+// Optional: if defined will be used to check answer from issuer
+$config['oauth_issuer'] = null;
+
+// Optional: if defined will download JWKS Certificate and check JWT signatures
+$config['oauth_jwks_uri'] = null;
+
 // Mandatory: URI for OAuth user authentication (redirect)
 $config['oauth_auth_uri'] = null;
 
-// Mandatory: Endpoint for OAuth authentication requests (server-to-server)
+// Optional: PKCE protection, by default it is enabled to S256 method, to disable it use `false`
+// please note that `plain` method is voluntarily not implemented
+$config['oauth_pkce'] = 'S256';
+
+// Mandatory or Optional if $oauth_config_uri is specified: Endpoint for OAuth authentication requests (server-to-server)
 $config['oauth_token_uri'] = null;
 
 // Optional: Endpoint to query user identity if not provided in auth response
 $config['oauth_identity_uri'] = null;
 
+// Optional: Endpoint for OIDC Logout propagation
+$config['oauth_logout_uri'] = null;
+
 // Optional: timeout for HTTP requests to OAuth server
 $config['oauth_timeout'] = 10;
 
 // Optional: disable SSL certificate check on HTTP requests to OAuth server
-// See http://docs.guzzlephp.org/en/stable/request-options.html#verify for possible values
+// See https://docs.guzzlephp.org/en/stable/request-options.html#verify for possible values
 $config['oauth_verify_peer'] = true;
 
 // Mandatory: OAuth scopes to request (space-separated string)
@@ -377,12 +391,39 @@ $config['oauth_identity_fields'] = null;
 // Boolean: automatically redirect to OAuth login when opening Roundcube without a valid session
 $config['oauth_login_redirect'] = false;
 
-///// Example config for Gmail
+// Optional: boolean, if true will generate debug information to <default log path>/oauth.log
+$config['oauth_debug'] = false;
+
+// Mandatory for backchannel, highly recommended when using `oauth_config_uri` or `oauth_jwks_uri` (Type of cache. Supported values: 'db', 'apc' and 'memcache' or 'memcached')
+$config['oauth_cache'] = 'db';
+
+// Optional: cache ttl
+$config['oauth_cache_ttl'] = '8h';
+
+// Optional: map OIDC claims to Roundcube keys during the account creation
+// format: roundcube_key => array of claims (the first claim found and defined will be used)
+// more informations on claims: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+// roundcube_key can be: user_name, user_email, language
+// default value:
+$config['oauth_user_create_map'] = [
+    'user_name' => ['name'],
+    'user_email' => ['email'],
+    'language' => ['locale'],
+];
+
+// Optional: For backends that don't support XOAUTH2/OAUTHBEARER method we can still use
+// OpenIDC protocol to get a short-living password (claim) for the user to log into IMAP/SMTP.
+// That password have to have (at least) the same expiration time as the token, and will be
+// renewed on token refresh.
+// Note: The claim have to be added to 'oauth_scope' above.
+$config['oauth_password_claim'] = null;
+
+// /// Example config for Gmail
 
 // Register your service at https://console.developers.google.com/
 // - use https://<your-roundcube-url>/index.php/login/oauth as redirect URL
 
-// $config['default_host'] = 'ssl://imap.gmail.com';
+// $config['imap_host'] = 'ssl://imap.gmail.com';
 // $config['oauth_provider'] = 'google';
 // $config['oauth_provider_name'] = 'Google';
 // $config['oauth_client_id'] = "<your-credentials-client-id>";
@@ -393,7 +434,7 @@ $config['oauth_login_redirect'] = false;
 // $config['oauth_scope'] = "email profile openid https://mail.google.com/";
 // $config['oauth_auth_parameters'] = ['access_type' => 'offline', 'prompt' => 'consent'];
 
-///// Example config for Outlook.com (Office 365)
+// /// Example config for Outlook.com (Office 365)
 
 // Register your OAuth client at https://portal.azure.com
 // - use https://<your-roundcube-url>/index.php/login/oauth as redirect URL
@@ -423,7 +464,6 @@ $config['ldap_cache'] = 'db';
 // Lifetime of LDAP cache. Possible units: s, m, h, d, w
 $config['ldap_cache_ttl'] = '10m';
 
-
 // ----------------------------------
 // CACHE(S)
 // ----------------------------------
@@ -434,16 +474,16 @@ $config['ldap_cache_ttl'] = '10m';
 $config['memcache_hosts'] = null;
 
 // Controls the use of a persistent connections to memcache servers
-// See http://php.net/manual/en/memcache.addserver.php
+// See https://php.net/manual/en/memcache.addserver.php
 $config['memcache_pconnect'] = true;
 
 // Value in seconds which will be used for connecting to the daemon
-// See http://php.net/manual/en/memcache.addserver.php
+// See https://php.net/manual/en/memcache.addserver.php
 $config['memcache_timeout'] = 1;
 
 // Controls how often a failed server will be retried (value in seconds).
 // Setting this parameter to -1 disables automatic retry.
-// See http://php.net/manual/en/memcache.addserver.php
+// See https://php.net/manual/en/memcache.addserver.php
 $config['memcache_retry_interval'] = 15;
 
 // Use these hosts for accessing Redis.
@@ -464,7 +504,6 @@ $config['apc_max_allowed_packet'] = '2M';
 
 // Maximum size of an object in Redis cache (in bytes). Default: 2MB
 $config['redis_max_allowed_packet'] = '2M';
-
 
 // ----------------------------------
 // SYSTEM
@@ -617,7 +656,6 @@ $config['session_auth_name'] = null;
 $config['session_path'] = null;
 
 // Session samesite. Defaults to PHP session.cookie_samesite setting.
-// Requires PHP >= 7.3.0, see https://wiki.php.net/rfc/same-site-cookie for more info
 // Possible values: null (default), 'Lax', or 'Strict'
 $config['session_samesite'] = null;
 
@@ -786,7 +824,7 @@ $config['mime_magic'] = null;
 // Absolute path to a local mime.types mapping table file.
 // This is used to derive mime-types from the filename extension or vice versa.
 // Such a file is usually part of the apache webserver. If you don't find a file named mime.types on your system,
-// download it from http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+// download it from https://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
 $config['mime_types'] = null;
 
 // path to imagemagick identify binary (if not set we'll use Imagick or GD extensions)
@@ -815,6 +853,7 @@ $config['no_save_sent_messages'] = false;
 // Warning: This requires http server configuration. Sample:
 //    RewriteRule ^/roundcubemail/[a-zA-Z0-9]{16}/(.*) /roundcubemail/$1 [PT]
 //    Alias /roundcubemail /var/www/roundcubemail/
+// Warning: This feature does NOT work with request_path = 'SCRIPT_NAME'
 // Note: Use assets_path to not prevent the browser from caching assets
 $config['use_secure_urls'] = false;
 
@@ -835,16 +874,14 @@ $config['request_path'] = null;
 //    <FilesMatch ".(eot|ttf|woff)">
 //    Header set Access-Control-Allow-Origin "*"
 //    </FilesMatch>
-$config['assets_path'] = '';
-
-// While assets_path is for the browser, assets_dir informs
-// PHP code about the location of asset files in filesystem
-$config['assets_dir'] = '';
+$config['assets_path'] = null;
 
 // Options passed when creating Guzzle HTTP client, used to fetch remote content
 // For example:
 // [
-//   'timeout' => 10,
+//   'timeout' => 30,
+//   'connect_timeout' => 5,
+//   'read_timeout' => 120,
 //   'proxy' => 'tcp://localhost:8125',
 // ]
 $config['http_client'] = [];
@@ -950,16 +987,16 @@ $config['spellcheck_dictionary'] = false;
 // - 'googie'  - the default (also used for connecting to Nox Spell Server, see 'spellcheck_uri' setting)
 // - 'pspell'  - requires the PHP Pspell module and aspell installed
 // - 'enchant' - requires the PHP Enchant module
-// - 'atd'     - install your own After the Deadline server or check with the people at http://www.afterthedeadline.com before using their API
+// - 'atd'     - install your own After the Deadline server or check with the people at https://www.afterthedeadline.com before using their API
 // Since Google shut down their public spell checking service, the default settings
-// connect to http://spell.roundcube.net which is a hosted service provided by Roundcube.
+// connect to https://spell.roundcube.net which is a hosted service provided by Roundcube.
 // You can connect to any other googie-compliant service by setting 'spellcheck_uri' accordingly.
 $config['spellcheck_engine'] = 'googie';
 
 // For locally installed Nox Spell Server or After the Deadline services,
 // please specify the URI to call it.
 // Get Nox Spell Server from http://orangoo.com/labs/?page_id=72 or
-// the After the Deadline package from http://www.afterthedeadline.com.
+// the After the Deadline package from https://www.afterthedeadline.com.
 // Leave empty to use the public API of service.afterthedeadline.com
 $config['spellcheck_uri'] = '';
 
@@ -994,8 +1031,8 @@ $config['undo_timeout'] = 0;
 
 // A static list of canned responses which are immutable for the user
 $config['compose_responses_static'] = [
-//  ['name' => 'Canned Response 1', 'text' => 'Static Response One'],
-//  ['name' => 'Canned Response 2', 'text' => 'Static Response Two'],
+    // ['name' => 'Canned Response 1', 'text' => 'Static Response One'],
+    // ['name' => 'Canned Response 2', 'text' => 'Static Response Two'],
 ];
 
 // List of HKP key servers for PGP public key lookups in Enigma/Mailvelope
@@ -1065,7 +1102,7 @@ $config['ldap_public']['Verisign'] = [
   // Note: To enable TLS use tls:// prefix
   'hosts'         => array('directory.verisign.com:389'),
   'ldap_version'  => 3,       // using LDAPv3
-  'network_timeout' => 10,    // The timeout (in seconds) for connect + bind attempts. This is only supported in PHP >= 5.3.0 with OpenLDAP 2.x
+  'network_timeout' => 10,    // The timeout (in seconds) for connect + bind attempts.
   'user_specific' => false,   // If true the base_dn, bind_dn and bind_pass default to the user's IMAP login.
   // When 'user_specific' is enabled following variables can be used in base_dn/bind_dn config:
   // %fu - The full username provided, assumes the username is an email
@@ -1113,10 +1150,12 @@ $config['ldap_public']['Verisign'] = [
   // to be one of the search_fields, the base of base_dn is appended
   // to the RDN to insert into the LDAP directory.
   'LDAP_rdn'       => 'cn',
-  // The required fields needed to build a new contact as required by
+  // The required attributes needed to build a new contact as required by
   // the object classes (can include additional fields not required by the object classes).
   'required_fields' => ['cn', 'sn', 'mail'],
-  'search_fields'   => ['mail', 'cn'],  // fields to search in
+  // The attributes used when searching with "All fields" option
+  // If empty, attributes for name, surname, firstname and email fields will be used
+  'search_fields'   => ['mail', 'cn'],
   // mapping of contact fields to directory attributes
   //   1. for every attribute one can specify the number of values (limit) allowed.
   //      default is 1, a wildcard * means unlimited
@@ -1264,7 +1303,6 @@ $config['collected_recipients'] = true;
 // Default: true (the built-in "Trusted senders" addressbook, source id = '2')
 // Note: It can be set to any writeable addressbook, e.g. 'sql'
 $config['collected_senders'] = true;
-
 
 // ----------------------------------
 // USER PREFERENCES
@@ -1429,10 +1467,18 @@ $config['force_7bit'] = false;
 // The entry with key '*' stands for all folders which do not have a specific list set.
 // Supported fields: subject, from, to, cc, bcc, replyto, followupto, body, text.
 // Please note that folder names should to be in sync with $config['*_mbox'] options
-$config['search_mods'] = null;  // Example: ['*' => ['subject'=>1, 'from'=>1], 'Sent' => ['subject'=>1, 'to'=>1]];
+// Example: ['*' => ['subject'=>1, 'from'=>1], 'Sent' => ['subject'=>1, 'to'=>1]];
+$config['search_mods'] = null;
+
+// Default search scope. Supported values:
+// 'base' - for current folder (default),
+// 'sub' - for current folder and subfolders,
+// 'all' - for all folders
+$config['search_scope'] = null;
 
 // Defaults of the addressbook search field configuration.
-$config['addressbook_search_mods'] = null;  // Example: ['name'=>1, 'firstname'=>1, 'surname'=>1, 'email'=>1, '*'=>1];
+// Example: ['name'=>1, 'firstname'=>1, 'surname'=>1, 'email'=>1, '*'=>1];
+$config['addressbook_search_mods'] = null;
 
 // Directly delete messages in Junk instead of moving to Trash
 $config['delete_junk'] = false;
@@ -1470,14 +1516,40 @@ $config['spellcheck_before_send'] = false;
 // Skip alternative email addresses in autocompletion (show one address per contact)
 $config['autocomplete_single'] = false;
 
-// Default font for composed HTML message.
-// Supported values: Andale Mono, Arial, Arial Black, Book Antiqua, Courier New,
-// Georgia, Helvetica, Impact, Tahoma, Terminal, Times New Roman, Trebuchet MS, Verdana
+// Default font for composed HTML message
+// See 'available_fonts' option for supported values
 $config['default_font'] = 'Verdana';
 
-// Default font size for composed HTML message.
-// Supported sizes: 8pt, 10pt, 12pt, 14pt, 18pt, 24pt, 36pt
+// List of available fonts for the user to choose from when composing HTML messages
+// Specify an array with 'font name' => 'comma separated list of font name/family'
+// Note: If a font name contains white-space, it must be quoted
+// Note: At minimum the font name set in default_font must be present in this array
+// Setting a single value will hide the font select box in the interface
+$config['available_fonts'] = [
+    'Andale Mono' => '"Andale Mono",Times,monospace',
+    'Arial' => 'Arial,Helvetica,sans-serif',
+    'Arial Black' => '"Arial Black","Avant Garde",sans-serif',
+    'Book Antiqua' => '"Book Antiqua",Palatino,serif',
+    'Courier New' => '"Courier New",Courier,monospace',
+    'Georgia' => 'Georgia,Palatino,serif',
+    'Helvetica' => 'Helvetica,Arial,sans-serif',
+    'Impact' => 'Impact,Chicago,sans-serif',
+    'Tahoma' => 'Tahoma,Arial,Helvetica,sans-serif',
+    'Terminal' => 'Terminal,Monaco,monospace',
+    'Times New Roman' => '"Times New Roman",Times,serif',
+    'Trebuchet MS' => '"Trebuchet MS",Geneva,sans-serif',
+    'Verdana' => 'Verdana,Geneva,sans-serif',
+];
+
+// Default font size for composed HTML message
+// See 'available_font_sizes' option for supported values
 $config['default_font_size'] = '10pt';
+
+// List of available font sizes for the user to choose from when composing HTML messages
+// Specify an array of font sizes
+// Note: At minimum the font size set in default_font_size must be present in this array
+// Setting a single value will hide the font size select box in the interface
+$config['available_font_sizes'] = ['8pt', '9pt', '10pt', '11pt', '12pt', '14pt', '18pt', '24pt', '36pt'];
 
 // Enables display of email address with name instead of a name (and address in title)
 $config['message_show_email'] = false;

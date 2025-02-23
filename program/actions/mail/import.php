@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -28,6 +28,7 @@ class rcmail_action_mail_import extends rcmail_action
      *
      * @param array $args Arguments from the previous step(s)
      */
+    #[Override]
     public function run($args = [])
     {
         $rcmail = rcmail::get_instance();
@@ -37,7 +38,7 @@ class rcmail_action_mail_import extends rcmail_action
 
         if (!empty($_FILES['_file']) && is_array($_FILES['_file'])) {
             $imported = 0;
-            $folder   = $rcmail->storage->get_folder();
+            $folder = $rcmail->storage->get_folder();
 
             foreach ((array) $_FILES['_file']['tmp_name'] as $i => $filepath) {
                 // Process uploaded file if there is no error
@@ -46,60 +47,26 @@ class rcmail_action_mail_import extends rcmail_action
                 if (!$err) {
                     // check file content type first
                     $ctype = rcube_mime::file_content_type($filepath, $_FILES['_file']['name'][$i], $_FILES['_file']['type'][$i]);
-                    list($mtype_primary, $mtype_secondary) = explode('/', $ctype);
+                    [$mtype_primary, $mtype_secondary] = explode('/', $ctype);
 
                     if (in_array($ctype, ['application/zip', 'application/x-zip'])) {
                         $filepath = self::zip_extract($filepath);
                         if (empty($filepath)) {
                             continue;
                         }
-                    }
-                    else if (!in_array($mtype_primary, ['text', 'message'])) {
+                    } elseif (!in_array($mtype_primary, ['text', 'message'])) {
                         continue;
                     }
 
                     foreach ((array) $filepath as $file) {
-                        // read the first few lines to detect header-like structure
-                        $fp = fopen($file, 'r');
-                        do {
-                            $line = fgets($fp);
-                        }
-                        while ($line !== false && trim($line) == '');
-
-                        if (!preg_match('/^From .+/', $line) && !preg_match('/^[a-z-_]+:\s+.+/i', $line)) {
-                            continue;
-                        }
-
-                        $message = $lastline = '';
-                        fseek($fp, 0);
-
-                        while (($line = fgets($fp)) !== false) {
-                            // importing mbox file, split by From - lines
-                            if ($lastline === '' && strncmp($line, 'From ', 5) === 0 && strlen($line) > 5) {
-                                if (!empty($message)) {
-                                    $imported += (int) self::save_message($folder, $message);
-                                }
-
-                                $message  = $line;
-                                $lastline = '';
-                                continue;
-                            }
-
-                            $message .= $line;
-                            $lastline = rtrim($line);
-                        }
-
-                        if (!empty($message)) {
-                            $imported += (int) self::save_message($folder, $message);
-                        }
+                        $imported += self::import_file($file, $folder);
 
                         // remove temp files extracted from zip
                         if (is_array($filepath)) {
                             unlink($file);
                         }
                     }
-                }
-                else {
+                } else {
                     self::upload_error($err);
                 }
             }
@@ -107,12 +74,10 @@ class rcmail_action_mail_import extends rcmail_action
             if ($imported) {
                 $rcmail->output->show_message($rcmail->gettext(['name' => 'importmessagesuccess', 'nr' => $imported, 'vars' => ['nr' => $imported]]), 'confirmation');
                 $rcmail->output->command('command', 'list');
-            }
-            else {
+            } else {
                 $rcmail->output->show_message('importmessageerror', 'error');
             }
-        }
-        else {
+        } else {
             self::upload_failure();
         }
 
@@ -120,28 +85,34 @@ class rcmail_action_mail_import extends rcmail_action
         $rcmail->output->send('iframe');
     }
 
+    /**
+     * Extract files from a zip archive
+     *
+     * @param string $path ZIP file location
+     *
+     * @return array List of extracted files
+     */
     public static function zip_extract($path)
     {
         if (!class_exists('ZipArchive', false)) {
-            return;
+            return [];
         }
 
-        $zip   = new ZipArchive;
+        $zip = new ZipArchive();
         $files = [];
 
         if ($zip->open($path)) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
-                $entry    = $zip->getNameIndex($i);
+                $entry = $zip->getNameIndex($i);
                 $tmpfname = rcube_utils::temp_filename('zipimport');
 
-                if (copy("zip://$path#$entry", $tmpfname)) {
+                if (copy("zip://{$path}#{$entry}", $tmpfname)) {
                     $ctype = rcube_mime::file_content_type($tmpfname, $entry);
-                    list($mtype_primary, ) = explode('/', $ctype);
+                    [$mtype_primary] = explode('/', $ctype);
 
                     if (in_array($mtype_primary, ['text', 'message'])) {
                         $files[] = $tmpfname;
-                    }
-                    else {
+                    } else {
                         unlink($tmpfname);
                     }
                 }
@@ -153,14 +124,72 @@ class rcmail_action_mail_import extends rcmail_action
         return $files;
     }
 
-    public static function save_message($folder, &$message)
+    /**
+     * Parse input file in mbox or eml format, save email messages
+     *
+     * @param string $file   Filename
+     * @param string $folder IMAP folder
+     *
+     * @return int Number of imported messages
+     */
+    public static function import_file($file, $folder)
+    {
+        $fp = fopen($file, 'r');
+
+        // read the first few lines to detect header-like structure
+        do {
+            $line = fgets($fp);
+        } while ($line !== false && trim($line) == '');
+
+        $format = null;
+        if (strncmp($line, 'From ', 5) === 0) {
+            $format = 'mbox';
+        } elseif (preg_match('/^[a-z-_]+:\s+.+/i', $line)) {
+            $format = 'eml';
+        } else {
+            return 0;
+        }
+
+        $imported = 0;
+        $message = '';
+
+        fseek($fp, 0);
+
+        while (($line = fgets($fp)) !== false) {
+            // importing mbox file, split by From - lines
+            if ($format == 'mbox' && strncmp($line, 'From ', 5) === 0 && strlen($line) > 5) {
+                if (strlen($message)) {
+                    $imported += (int) self::save_message($folder, $message, $format);
+                }
+
+                $message = $line;
+                $lastline = '';
+                continue;
+            }
+
+            $message .= $line;
+        }
+
+        if (strlen($message)) {
+            $imported += (int) self::save_message($folder, $message, $format);
+        }
+
+        fclose($fp);
+
+        return $imported;
+    }
+
+    /**
+     * Append the message to an IMAP folder
+     */
+    public static function save_message($folder, &$message, $format = 'mbox')
     {
         $date = null;
 
-        if (strncmp($message, 'From ', 5) === 0) {
+        if ($format == 'mbox') {
             // Extract the mbox from_line
-            $pos     = strpos($message, "\n");
-            $from    = substr($message, 0, $pos);
+            $pos = strpos($message, "\n");
+            $from = substr($message, 0, $pos);
             $message = substr($message, $pos + 1);
 
             // Read the received date, support only known date formats
@@ -177,23 +206,23 @@ class rcmail_action_mail_import extends rcmail_action
             ) {
                 try {
                     $date = new DateTime($m[0], new DateTimeZone('UTC'));
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     // ignore
                 }
             }
+
+            // unquote ">From " lines in message body
+            $message = preg_replace('/\n>([>]*)From /', "\n\\1From ", $message);
         }
 
-        // unquote ">From " lines in message body
-        $message = preg_replace('/\n>([>]*)From /', "\n\\1From ", $message);
         $message = rtrim($message);
-        $rcmail  = rcmail::get_instance();
+        $rcmail = rcmail::get_instance();
 
         if ($rcmail->storage->save_message($folder, $message, '', false, [], $date)) {
             return true;
         }
 
-        rcube::raise_error("Failed to import message to $folder", true, false);
+        rcube::raise_error("Failed to import message to {$folder}", true, false);
 
         return false;
     }

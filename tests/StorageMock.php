@@ -1,6 +1,8 @@
 <?php
 
-/**
+namespace Roundcube\Tests;
+
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -19,8 +21,6 @@
 
 /**
  * A class for easier testing of code utilizing rcube_storage
- *
- * @package Tests
  */
 class StorageMock
 {
@@ -46,7 +46,7 @@ class StorageMock
             }
         }
 
-        throw new Exception("Unhandled function call for '$name' in StorageMock");
+        throw new \Exception("Unhandled function call for '{$name}'");
     }
 
     /**
@@ -65,5 +65,30 @@ class StorageMock
     public function get_namespace()
     {
         return null;
+    }
+
+    /**
+     * Check if specified folder is a special folder
+     */
+    public function is_special_folder($name)
+    {
+        return $name == 'INBOX' || in_array($name, $this->get_special_folders());
+    }
+
+    /**
+     * Return configured special folders
+     */
+    public function get_special_folders($forced = false)
+    {
+        $rcube = \rcube::get_instance();
+        $folders = [];
+
+        foreach (\rcube_storage::$folder_types as $type) {
+            if ($folder = $rcube->config->get($type . '_mbox')) {
+                $folders[$type] = $folder;
+            }
+        }
+
+        return $folders;
     }
 }

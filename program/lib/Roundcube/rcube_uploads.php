@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  +-----------------------------------------------------------------------+
  | This file is part of the Roundcube Webmail client                     |
  |                                                                       |
@@ -19,9 +19,6 @@
 
 /**
  * A trait providing access to metadata of files uploaded in a session.
- *
- * @package    Framework
- * @subpackage Core
  */
 trait rcube_uploads
 {
@@ -39,8 +36,8 @@ trait rcube_uploads
         }
 
         $sql_result = $this->db->query(
-            "SELECT * FROM " . $this->db->table_name('uploads', true)
-                . " WHERE `session_id` = ? AND `upload_id` = ?",
+            'SELECT * FROM ' . $this->db->table_name('uploads', true)
+                . ' WHERE `session_id` = ? AND `upload_id` = ?',
             $session_id, $id
         );
 
@@ -51,6 +48,8 @@ trait rcube_uploads
 
             return $sql_arr;
         }
+
+        return null;
     }
 
     /**
@@ -67,9 +66,9 @@ trait rcube_uploads
         }
 
         $sql_result = $this->db->query(
-            "SELECT * FROM " . $this->db->table_name('uploads', true)
-                . " WHERE `session_id` = ? AND `group` = ?"
-                . " ORDER BY `created`",
+            'SELECT * FROM ' . $this->db->table_name('uploads', true)
+                . ' WHERE `session_id` = ? AND `group` = ?'
+                . ' ORDER BY `created`',
             $session_id, $group
         );
 
@@ -101,9 +100,9 @@ trait rcube_uploads
 
         $metadata = $this->prepare_upload_metadata(array_merge($file, $data));
 
-        $sql = "UPDATE " . $this->db->table_name('uploads', true)
-            . " SET `metadata` = ?"
-            . " WHERE `upload_id` = ? AND `session_id` = ?";
+        $sql = 'UPDATE ' . $this->db->table_name('uploads', true)
+            . ' SET `metadata` = ?'
+            . ' WHERE `upload_id` = ? AND `session_id` = ?';
 
         $update = $this->db->query($sql, $metadata, $id, $this->get_session_id());
 
@@ -135,9 +134,9 @@ trait rcube_uploads
 
         $metadata = $this->prepare_upload_metadata($data);
 
-        $sql = "INSERT INTO " . $this->db->table_name('uploads', true)
-            . " (`created`, `session_id`, `upload_id`, `group`, `metadata`)"
-            . " VALUES (" . $this->db->now() . ", ?, ?, ?, ?)";
+        $sql = 'INSERT INTO ' . $this->db->table_name('uploads', true)
+            . ' (`created`, `session_id`, `upload_id`, `group`, `metadata`)'
+            . ' VALUES (' . $this->db->now() . ', ?, ?, ?, ?)';
 
         $insert = $this->db->query($sql, $session_id, $data['id'], $data['group'] ?? null, $metadata);
 
@@ -166,8 +165,8 @@ trait rcube_uploads
         }
 
         $this->db->query(
-            "DELETE FROM " . $this->db->table_name('uploads', true)
-                . " WHERE `session_id` = ? AND `upload_id` = ?",
+            'DELETE FROM ' . $this->db->table_name('uploads', true)
+                . ' WHERE `session_id` = ? AND `upload_id` = ?',
             $session_id,
             $id
         );
@@ -191,8 +190,8 @@ trait rcube_uploads
         $this->plugins->exec_hook('attachments_cleanup', ['group' => $group]);
 
         $this->db->query(
-            "DELETE FROM " . $this->db->table_name('uploads', true)
-                . " WHERE `session_id` = ? AND `group` = ?",
+            'DELETE FROM ' . $this->db->table_name('uploads', true)
+                . ' WHERE `session_id` = ? AND `group` = ?',
             $session_id,
             $group
         );
@@ -218,18 +217,17 @@ trait rcube_uploads
             // generate image thumbnail for file browser in HTML editor
             if ($thumbnail) {
                 $thumbnail_size = 80;
-                $mimetype       = $file['mimetype'];
-                $file_ident     = $file['id'] . ':' . $file['mimetype'] . ':' . $file['size'];
-                $thumb_name     = 'thumb' . md5($file_ident . ':' . $this->user->ID . ':' . $thumbnail_size);
-                $cache_file     = rcube_utils::temp_filename($thumb_name, false, false);
+                $mimetype = $file['mimetype'];
+                $file_ident = $file['id'] . ':' . $file['mimetype'] . ':' . $file['size'];
+                $thumb_name = 'thumb' . md5($file_ident . ':' . $this->user->ID . ':' . $thumbnail_size);
+                $cache_file = rcube_utils::temp_filename($thumb_name, false, false);
 
                 // render thumbnail image if not done yet
                 if (!is_file($cache_file)) {
                     if (empty($file['path'])) {
                         $orig_name = $filename = $cache_file . '.tmp';
                         file_put_contents($orig_name, $file['data']);
-                    }
-                    else {
+                    } else {
                         $filename = $file['path'];
                     }
 
@@ -259,8 +257,7 @@ trait rcube_uploads
 
             if (isset($file['data']) && is_string($file['data'])) {
                 echo $file['data'];
-            }
-            else if (!empty($file['path'])) {
+            } elseif (!empty($file['path'])) {
                 readfile($file['path']);
             }
         }
@@ -275,10 +272,12 @@ trait rcube_uploads
         $data = array_diff_key($data, array_fill_keys(['id', 'group', 'status', 'abort', 'error', 'data', 'created'], 1));
 
         // Remove null values
-        $data = array_filter($data, function ($v) { return !is_null($v); });
+        $data = array_filter($data, static function ($v) {
+            return $v !== null;
+        });
 
         // Convert to string
-        $data = json_encode($data, JSON_INVALID_UTF8_IGNORE);
+        $data = json_encode($data, \JSON_INVALID_UTF8_IGNORE);
 
         return $data;
     }

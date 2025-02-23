@@ -1,15 +1,14 @@
 <?php
 
-namespace Tests\Browser\Components;
+namespace Roundcube\Tests\Browser\Components;
 
-use App;
-use Tests\Browser\Browser;
 use Laravel\Dusk\Component;
+use Roundcube\Tests\Browser\Browser;
 
 class HtmlEditor extends Component
 {
-    const MODE_PLAIN = 'plain';
-    const MODE_HTML  = 'html';
+    public const MODE_PLAIN = 'plain';
+    public const MODE_HTML = 'html';
 
     public $id;
 
@@ -26,6 +25,7 @@ class HtmlEditor extends Component
      *
      * @return string
      */
+    #[\Override]
     public function selector()
     {
         return '#' . $this->id;
@@ -35,10 +35,9 @@ class HtmlEditor extends Component
      * Assert that the browser page contains the component.
      *
      * @param Browser $browser
-     *
-     * @return void
      */
-    public function assert($browser)
+    #[\Override]
+    public function assert($browser): void
     {
         $browser->waitFor($this->selector() . '.html-editor');
     }
@@ -48,6 +47,7 @@ class HtmlEditor extends Component
      *
      * @return array
      */
+    #[\Override]
     public function elements()
     {
         return [
@@ -67,8 +67,7 @@ class HtmlEditor extends Component
         if ($mode == self::MODE_PLAIN) {
             $browser->assertVisible('@plain-toolbar')
                 ->assertMissing('@html-body');
-        }
-        else {
+        } else {
             $browser->assertMissing('@plain-toolbar')
                 ->assertVisible('@html-body');
         }
@@ -85,8 +84,7 @@ class HtmlEditor extends Component
                 $browser->waitForDialog()->acceptDialog();
             }
             $browser->waitFor('@html-body')->waitFor('@html-toolbar');
-        }
-        else {
+        } else {
             $browser->click('.tox-toolbar__group:first-child button');
             if ($accept_warning) {
                 $browser->waitForDialog()->acceptDialog();

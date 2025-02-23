@@ -211,7 +211,7 @@
 
  Specify the host to connect to via 'password_cpanel_host'. This driver
  comes with a minimal UAPI implementation and does not use the external xmlapi
- class. It requires php-curl extension.
+ class.
 
  See config.inc.php.dist file for more info.
 
@@ -366,7 +366,6 @@
 
  Modified version of ldap_simple.
  Password is changed using ldap_exop_passwd operation.
- PHP >= 7.2 required.
 
 
  2.1.24 TinyCP
@@ -437,26 +436,24 @@
  -------------
 
  Driver to use the Zxcvbn library to check password strength. Requires zxcvbn-php library.
- The library is not distributed with Roundcube (see composer.json-dist).
+ The library is not distributed with Roundcube (see composer.json).
  Note: Required PHP's memory_limit >= 24M.
 
- Set $config['password_zxcvbn_min_score'] to define minimum acceptable password strength score.
 
  2.2.2. Have I been pwned? (pwned)
  ---------------------------------
 
  Driver using "Have I been pwned?" (https://haveibeenpwned.com/Passwords) API to
  check that entered passwords aren't already compromised (i.e., commonly known).
- The check is performed locally, the actual password is *not* transmitted anywhere else.
-
- Requires curl (preferred) or allow_url_fopen to work.
+ The check is performed locally, the actual password is *not* transmitted anywhere.
 
  Example configuration:
 
  $config['password_strength_driver'] = 'pwned';
  $config['password_minimum_score'] = 3;
 
- See the driver implementation file for more documentation.
+ Maximum supported score for this driver is 3. See the driver implementation file for more documentation.
+
 
  3. Driver API
  -------------
